@@ -19,6 +19,9 @@ import {
   Text,
   TextInput,
   Tooltip,
+  Table,
+  Badge,
+  Select,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -30,6 +33,7 @@ import {
   IconHelpCircle,
   IconPencil,
   IconX,
+  IconChartBar,
 } from '@tabler/icons-react';
 
 import { ConnectionForm } from '@/components/ConnectionForm';
@@ -457,6 +461,312 @@ function ClickhouseSettingForm({
   );
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(2)}M`;
+  }
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(2)}K`;
+  }
+  return num.toString();
+}
+
+function DataIngestionMetricsRealtimeSection() {
+  const [timeRangeHours, setTimeRangeHours] = useState(1);
+  const { data: realtimeData, isLoading } =
+    api.useDataIngestionMetricsRealtime(timeRangeHours);
+
+  if (IS_LOCAL_MODE) {
+    return null;
+  }
+
+  return (
+    <Box id="data-ingestion-metrics-realtime">
+      <Group justify="space-between" mb="md">
+        <Group gap="xs">
+          <IconChartBar size={20} />
+          <Text size="md">Real-Time Service Breakdown</Text>
+        </Group>
+        <Group gap="xs">
+          <Select
+            value={timeRangeHours.toString()}
+            onChange={val => setTimeRangeHours(parseInt(val || '1', 10))}
+            data={[
+              { value: '1', label: 'Last 1 hour' },
+              { value: '2', label: 'Last 2 hours' },
+              { value: '6', label: 'Last 6 hours' },
+              { value: '24', label: 'Last 24 hours' },
+            ]}
+            size="xs"
+          />
+          <Tooltip
+            label="Real-time breakdown by service to help fine-tune your collector sampling policies. Use this to identify which services are ingesting the most data."
+          >
+            <IconHelpCircle size={16} style={{ cursor: 'help' }} />
+          </Tooltip>
+        </Group>
+      </Group>
+      <Divider my="md" />
+      <Card variant="muted">
+        {isLoading ? (
+          <Center p="xl">
+            <Loader color="dimmed" />
+          </Center>
+        ) : !realtimeData?.data || realtimeData.data.length === 0 ? (
+          <Text c="dimmed" ta="center" p="xl">
+            No service metrics available. Data will appear as services send telemetry.
+          </Text>
+        ) : (
+          <Stack gap="md">
+            <Group justify="space-between">
+              <Text size="sm" c="dimmed">
+                Service-level ingestion rates (estimated per hour)
+              </Text>
+              {realtimeData.timestamp && (
+                <Text size="xs" c="dimmed">
+                  Last updated:{' '}
+                  {new Date(realtimeData.timestamp).toLocaleTimeString()}
+                </Text>
+              )}
+            </Group>
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Service</Table.Th>
+                  <Table.Th>Est. Bytes/Hour</Table.Th>
+                  <Table.Th>Est. Rows/Hour</Table.Th>
+                  <Table.Th>Logs</Table.Th>
+                  <Table.Th>Traces</Table.Th>
+                  <Table.Th>Metrics</Table.Th>
+                  <Table.Th>Sessions</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {realtimeData.data.map(service => (
+                  <Table.Tr key={service.serviceName}>
+                    <Table.Td>
+                      <Text fw={500}>{service.serviceName}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge variant="light" color="blue">
+                        {formatBytes(service.estimatedBytesPerHour)}/hr
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge variant="light" color="green">
+                        {formatNumber(service.estimatedRowsPerHour)}/hr
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      {service.breakdown.logs.rows > 0 ? (
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(service.breakdown.logs.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(service.breakdown.logs.rows)} rows
+                          </Text>
+                        </Stack>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          —
+                        </Text>
+                      )}
+                    </Table.Td>
+                    <Table.Td>
+                      {service.breakdown.traces.rows > 0 ? (
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(service.breakdown.traces.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(service.breakdown.traces.rows)} rows
+                          </Text>
+                        </Stack>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          —
+                        </Text>
+                      )}
+                    </Table.Td>
+                    <Table.Td>
+                      {service.breakdown.metrics.rows > 0 ? (
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(service.breakdown.metrics.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(service.breakdown.metrics.rows)} rows
+                          </Text>
+                        </Stack>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          —
+                        </Text>
+                      )}
+                    </Table.Td>
+                    <Table.Td>
+                      {service.breakdown.sessions.rows > 0 ? (
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(service.breakdown.sessions.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(service.breakdown.sessions.rows)} rows
+                          </Text>
+                        </Stack>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          —
+                        </Text>
+                      )}
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+            <Text size="xs" c="dimmed" mt="sm">
+              💡 Tip: Use this data to configure tail sampling policies in your
+              OpenTelemetry collector. Services with high ingestion rates may
+              benefit from sampling strategies (errors-only, slow traces, or
+              probabilistic sampling).
+            </Text>
+          </Stack>
+        )}
+      </Card>
+    </Box>
+  );
+}
+
+function DataIngestionMetricsSection() {
+  const { data: metricsData, isLoading } = api.useDataIngestionMetrics();
+
+  if (IS_LOCAL_MODE) {
+    return null;
+  }
+
+  return (
+    <Box id="data-ingestion-metrics">
+      <Group justify="space-between" mb="md">
+        <Group gap="xs">
+          <IconChartBar size={20} />
+          <Text size="md">Daily Ingestion Metrics</Text>
+        </Group>
+        <Tooltip label="Daily breakdown of data ingested (bytes and rows) for invoicing purposes">
+          <IconHelpCircle size={16} style={{ cursor: 'help' }} />
+        </Tooltip>
+      </Group>
+      <Divider my="md" />
+      <Card variant="muted">
+        {isLoading ? (
+          <Center p="xl">
+            <Loader color="dimmed" />
+          </Center>
+        ) : !metricsData?.data || metricsData.data.length === 0 ? (
+          <Text c="dimmed" ta="center" p="xl">
+            No ingestion metrics available yet. Metrics are calculated hourly.
+          </Text>
+        ) : (
+          <Stack gap="md">
+            <Text size="sm" c="dimmed">
+              Daily totals for the last 30 days
+            </Text>
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Date</Table.Th>
+                  <Table.Th>Total Bytes</Table.Th>
+                  <Table.Th>Total Rows</Table.Th>
+                  <Table.Th>Logs</Table.Th>
+                  <Table.Th>Traces</Table.Th>
+                  <Table.Th>Metrics</Table.Th>
+                  <Table.Th>Sessions</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {metricsData.data
+                  .slice()
+                  .reverse()
+                  .map(metric => (
+                    <Table.Tr key={metric.date}>
+                      <Table.Td>
+                        <Text fw={500}>
+                          {new Date(metric.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge variant="light" color="blue">
+                          {formatBytes(metric.totalBytes)}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge variant="light" color="green">
+                          {formatNumber(metric.totalRows)}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(metric.breakdown.logs.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(metric.breakdown.logs.rows)} rows
+                          </Text>
+                        </Stack>
+                      </Table.Td>
+                      <Table.Td>
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(metric.breakdown.traces.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(metric.breakdown.traces.rows)} rows
+                          </Text>
+                        </Stack>
+                      </Table.Td>
+                      <Table.Td>
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(metric.breakdown.metrics.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(metric.breakdown.metrics.rows)} rows
+                          </Text>
+                        </Stack>
+                      </Table.Td>
+                      <Table.Td>
+                        <Stack gap={2}>
+                          <Text size="xs" c="dimmed">
+                            {formatBytes(metric.breakdown.sessions.bytes)}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {formatNumber(metric.breakdown.sessions.rows)} rows
+                          </Text>
+                        </Stack>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+              </Table.Tbody>
+            </Table>
+          </Stack>
+        )}
+      </Card>
+    </Box>
+  );
+}
+
 function TeamQueryConfigSection() {
   const displayValueWithUnit =
     (unit: string) => (value: any, defaultValue?: any) =>
@@ -682,6 +992,8 @@ export default function TeamPage() {
               <IntegrationsSection />
               <TeamNameSection />
               <TeamQueryConfigSection />
+              <DataIngestionMetricsRealtimeSection />
+              <DataIngestionMetricsSection />
 
               {hasAllowedAuthMethods && (
                 <>

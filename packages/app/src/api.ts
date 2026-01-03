@@ -727,5 +727,60 @@ const api = {
       },
     });
   },
+  useDataIngestionMetrics(startDate?: string, endDate?: string) {
+    return useQuery<{
+      data: Array<{
+        date: string;
+        totalBytes: number;
+        totalRows: number;
+        breakdown: {
+          logs: { bytes: number; rows: number };
+          traces: { bytes: number; rows: number };
+          metrics: { bytes: number; rows: number };
+          sessions: { bytes: number; rows: number };
+        };
+      }>;
+      hourly: any[];
+    }>({
+      queryKey: ['dataIngestionMetrics', startDate, endDate],
+      queryFn: async () => {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        return hdxServer(`team/data-ingestion-metrics?${params.toString()}`).json();
+      },
+      retry: false,
+    });
+  },
+  useDataIngestionMetricsRealtime(timeRangeHours: number = 1) {
+    return useQuery<{
+      data: Array<{
+        serviceName: string;
+        totalBytes: number;
+        totalRows: number;
+        estimatedBytesPerHour: number;
+        estimatedRowsPerHour: number;
+        breakdown: {
+          logs: { bytes: number; rows: number };
+          traces: { bytes: number; rows: number };
+          metrics: { bytes: number; rows: number };
+          sessions: { bytes: number; rows: number };
+        };
+      }>;
+      timeRangeHours: number;
+      timestamp: string;
+    }>({
+      queryKey: ['dataIngestionMetricsRealtime', timeRangeHours],
+      queryFn: async () => {
+        const params = new URLSearchParams();
+        params.append('timeRangeHours', timeRangeHours.toString());
+        return hdxServer(
+          `team/data-ingestion-metrics-realtime?${params.toString()}`,
+        ).json();
+      },
+      retry: false,
+      refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    });
+  },
 };
 export default api;

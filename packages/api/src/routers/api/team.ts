@@ -2,6 +2,7 @@ import { TeamClickHouseSettingsSchema } from '@hyperdx/common-utils/dist/types';
 import crypto from 'crypto';
 import express from 'express';
 import pick from 'lodash/pick';
+import { serializeError } from 'serialize-error';
 import { z } from 'zod';
 import { validateRequest } from 'zod-express-middleware';
 
@@ -17,7 +18,12 @@ import {
   findUserByEmail,
   findUsersByTeam,
 } from '@/controllers/user';
+import Connection from '@/models/connection';
+import DataIngestionMetrics from '@/models/dataIngestionMetrics';
 import TeamInvite from '@/models/teamInvite';
+import { Source } from '@/models/source';
+import { queryServiceLevelMetrics } from '@/tasks/calculateDataIngestion/serviceMetrics';
+import logger from '@/utils/logger';
 import { objectIdSchema } from '@/utils/zod';
 
 const router = express.Router();
@@ -276,6 +282,193 @@ router.get('/tags', async (req, res, next) => {
     }
     const tags = await getTags(teamId);
     return res.json({ data: tags });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/data-ingestion-metrics-realtime', async (req, res, next) => {
+  try {
+    const teamId = req.user?.team;
+    if (teamId == null) {
+      throw new Error(`User ${req.user?._id} not associated with a team`);
+    }
+
+    const timeRangeHours = req.query.timeRangeHours
+      ? parseInt(req.query.timeRangeHours as string, 10)
+      : 1;
+
+    // Get the managed connection for this team
+    const connection = await Connection.findOne({
+      team: teamId,
+      isManaged: true,
+    }).select('+password');
+
+    if (!connection) {
+      return res.json({ data: [] });
+    }
+
+    // Get tenant database name - try to get it from Source if available
+    const source = await Source.findOne({ team: teamId }).limit(1);
+    const database =
+      (source as any)?.from?.databaseName ?? `tenant_${teamId.toString()}`;
+
+    // Query real-time service metrics
+    const metrics = await queryServiceLevelMetrics(
+      connection,
+      database,
+      timeRangeHours,
+    );
+
+    // Aggregate by service (combining all table types)
+    const serviceAggregates = new Map<
+      string,
+      {
+        serviceName: string;
+        totalBytes: number;
+        totalRows: number;
+        estimatedBytesPerHour: number;
+        estimatedRowsPerHour: number;
+        breakdown: {
+          logs: { bytes: number; rows: number };
+          traces: { bytes: number; rows: number };
+          metrics: { bytes: number; rows: number };
+          sessions: { bytes: number; rows: number };
+        };
+      }
+    >();
+
+    for (const metric of metrics) {
+      if (!serviceAggregates.has(metric.serviceName)) {
+        serviceAggregates.set(metric.serviceName, {
+          serviceName: metric.serviceName,
+          totalBytes: 0,
+          totalRows: 0,
+          estimatedBytesPerHour: 0,
+          estimatedRowsPerHour: 0,
+          breakdown: {
+            logs: { bytes: 0, rows: 0 },
+            traces: { bytes: 0, rows: 0 },
+            metrics: { bytes: 0, rows: 0 },
+            sessions: { bytes: 0, rows: 0 },
+          },
+        });
+      }
+
+      const aggregate = serviceAggregates.get(metric.serviceName)!;
+      aggregate.totalBytes += metric.bytes;
+      aggregate.totalRows += metric.rows;
+      aggregate.estimatedBytesPerHour += metric.estimatedBytesPerHour;
+      aggregate.estimatedRowsPerHour += metric.estimatedRowsPerHour;
+      aggregate.breakdown[metric.tableType].bytes += metric.bytes;
+      aggregate.breakdown[metric.tableType].rows += metric.rows;
+    }
+
+    const result = {
+      data: Array.from(serviceAggregates.values()).sort(
+        (a, b) => b.estimatedBytesPerHour - a.estimatedBytesPerHour,
+      ),
+      timeRangeHours,
+      timestamp: new Date().toISOString(),
+    };
+
+    logger.info(
+      {
+        serviceCount: result.data.length,
+        database,
+        teamId: teamId.toString(),
+        timeRangeHours,
+      },
+      'Service metrics API response',
+    );
+
+    return res.json(result);
+  } catch (e: any) {
+    logger.error(
+      {
+        err: serializeError(e),
+        teamId: req.user?.team?.toString(),
+        timeRangeHours: req.query.timeRangeHours,
+      },
+      'Error in data-ingestion-metrics-realtime',
+    );
+    next(e);
+  }
+});
+
+router.get('/data-ingestion-metrics', async (req, res, next) => {
+  try {
+    const teamId = req.user?.team;
+    if (teamId == null) {
+      throw new Error(`User ${req.user?._id} not associated with a team`);
+    }
+
+    const { startDate, endDate } = req.query;
+
+    // Default to last 30 days if no date range provided
+    const end = endDate
+      ? new Date(endDate as string)
+      : new Date();
+    const start = startDate
+      ? new Date(startDate as string)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const metrics = await DataIngestionMetrics.find({
+      team: teamId,
+      date: {
+        $gte: start.toISOString().split('T')[0],
+        $lte: end.toISOString().split('T')[0],
+      },
+    })
+      .sort({ date: 1, hour: 1 })
+      .lean();
+
+    // Aggregate daily totals
+    const dailyTotals = new Map<string, {
+      date: string;
+      totalBytes: number;
+      totalRows: number;
+      breakdown: {
+        logs: { bytes: number; rows: number };
+        traces: { bytes: number; rows: number };
+        metrics: { bytes: number; rows: number };
+        sessions: { bytes: number; rows: number };
+      };
+    }>();
+
+    for (const metric of metrics) {
+      const date = metric.date;
+      if (!dailyTotals.has(date)) {
+        dailyTotals.set(date, {
+          date,
+          totalBytes: 0,
+          totalRows: 0,
+          breakdown: {
+            logs: { bytes: 0, rows: 0 },
+            traces: { bytes: 0, rows: 0 },
+            metrics: { bytes: 0, rows: 0 },
+            sessions: { bytes: 0, rows: 0 },
+          },
+        });
+      }
+
+      const daily = dailyTotals.get(date)!;
+      daily.totalBytes += metric.totalBytes;
+      daily.totalRows += metric.totalRows;
+      daily.breakdown.logs.bytes += metric.breakdown.logs.bytes;
+      daily.breakdown.logs.rows += metric.breakdown.logs.rows;
+      daily.breakdown.traces.bytes += metric.breakdown.traces.bytes;
+      daily.breakdown.traces.rows += metric.breakdown.traces.rows;
+      daily.breakdown.metrics.bytes += metric.breakdown.metrics.bytes;
+      daily.breakdown.metrics.rows += metric.breakdown.metrics.rows;
+      daily.breakdown.sessions.bytes += metric.breakdown.sessions.bytes;
+      daily.breakdown.sessions.rows += metric.breakdown.sessions.rows;
+    }
+
+    return res.json({
+      data: Array.from(dailyTotals.values()),
+      hourly: metrics,
+    });
   } catch (e) {
     next(e);
   }
