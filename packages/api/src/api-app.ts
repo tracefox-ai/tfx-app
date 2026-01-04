@@ -94,6 +94,7 @@ app.use('/incidents', isUserAuthenticated, routers.incidentsRouter);
 app.use('/me', isUserAuthenticated, routers.meRouter);
 app.use('/team', isUserAuthenticated, routers.teamRouter);
 app.use('/teams', isUserAuthenticated, routers.teamsRouter);
+app.use('/telemetry-insights', isUserAuthenticated, routers.telemetryInsightsRouter);
 app.use('/webhooks', isUserAuthenticated, routers.webhooksRouter);
 app.use('/connections', isUserAuthenticated, connectionsRouter);
 app.use('/sources', isUserAuthenticated, sourcesRouter);

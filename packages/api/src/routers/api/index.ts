@@ -7,6 +7,7 @@ import meRouter from './me';
 import rootRouter from './root';
 import teamRouter from './team';
 import teamsRouter from './teams';
+import telemetryInsightsRouter from './telemetryInsights';
 import webhooksRouter from './webhooks';
 
 export default {
@@ -19,5 +20,6 @@ export default {
   rootRouter,
   teamRouter,
   teamsRouter,
+  telemetryInsightsRouter,
   webhooksRouter,
 };

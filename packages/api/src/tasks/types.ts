@@ -4,6 +4,7 @@ export enum TaskName {
   PING_PONG = 'ping-pong',
   CHECK_ALERTS = 'check-alerts',
   CALCULATE_DATA_INGESTION = 'calculate-data-ingestion',
+  TELEMETRY_ANALYSIS = 'telemetry-analysis',
 }
 
 /**
@@ -34,16 +35,24 @@ const calculateDataIngestionTaskArgsSchema = z.object({
   taskName: z.literal(TaskName.CALCULATE_DATA_INGESTION),
 });
 
+const telemetryAnalysisTaskArgsSchema = z.object({
+  taskName: z.literal(TaskName.TELEMETRY_ANALYSIS),
+});
+
 const taskArgsSchema = z.discriminatedUnion('taskName', [
   pingTaskArgsSchema,
   checkAlertsTaskArgsSchema,
   calculateDataIngestionTaskArgsSchema,
+  telemetryAnalysisTaskArgsSchema,
 ]);
 
 export type PingTaskArgs = z.infer<typeof pingTaskArgsSchema>;
 export type CheckAlertsTaskArgs = z.infer<typeof checkAlertsTaskArgsSchema>;
 export type CalculateDataIngestionTaskArgs = z.infer<
   typeof calculateDataIngestionTaskArgsSchema
+>;
+export type TelemetryAnalysisTaskArgs = z.infer<
+  typeof telemetryAnalysisTaskArgsSchema
 >;
 export type TaskArgs = z.infer<typeof taskArgsSchema>;
 

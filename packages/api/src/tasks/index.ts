@@ -5,6 +5,7 @@ import { serializeError } from 'serialize-error';
 import { RUN_SCHEDULED_TASKS_EXTERNALLY } from '@/config';
 import CheckAlertTask from '@/tasks/checkAlerts';
 import CalculateDataIngestionTask from '@/tasks/calculateDataIngestion';
+import TelemetryAnalysisTask from '@/tasks/telemetryAnalysis';
 import {
   taskExecutionDurationGauge,
   taskExecutionFailureCounter,
@@ -26,6 +27,8 @@ function createTask(argv: TaskArgs): HdxTask<TaskArgs> {
       return new PingPongTask(argv);
     case TaskName.CALCULATE_DATA_INGESTION:
       return new CalculateDataIngestionTask(argv);
+    case TaskName.TELEMETRY_ANALYSIS:
+      return new TelemetryAnalysisTask(argv);
     default:
       throw new Error(`Unknown task name ${taskName}`);
   }
@@ -41,10 +44,10 @@ async function main(argv: TaskArgs): Promise<void> {
     } catch (e: unknown) {
       logger.error(
         {
-          cause: e,
+          err: serializeError(e),
           task,
         },
-        `${task.name()} failed: ${serializeError(e)}`,
+        `${task.name()} failed`,
       );
       taskExecutionFailureCounter.get(argv.taskName)?.add(1);
     } finally {
