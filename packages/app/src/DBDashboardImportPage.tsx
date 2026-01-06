@@ -411,7 +411,7 @@ function DBDashboardImportPage() {
   return (
     <div>
       <Head>
-        <title>Create a Dashboard - HyperDX</title>
+        <title>Create a Dashboard</title>
       </Head>
       <PageHeader>
         <div>Create Dashboard &gt; Import Dashboard</div>

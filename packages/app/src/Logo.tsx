@@ -48,7 +48,7 @@ export default function Logo({
           fontSize: configs[size].fontSize,
         }}
       >
-        HyperDX
+        Tracefox
       </span>
     </div>
   );

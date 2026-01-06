@@ -230,7 +230,7 @@ function DBChartExplorerPage() {
   return (
     <Box data-testid="chart-explorer-page" p="sm">
       <Head>
-        <title>Chart Explorer - HyperDX</title>
+        <title>Chart Explorer</title>
       </Head>
       <AIAssistant
         setConfig={setChartConfig}

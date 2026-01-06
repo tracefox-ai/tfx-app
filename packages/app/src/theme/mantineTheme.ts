@@ -9,15 +9,43 @@ import {
   Tooltip,
 } from '@mantine/core';
 
+// Tailwind Slate
+const slate = [
+  '#f8fafc',
+  '#f1f5f9',
+  '#e2e8f0',
+  '#cbd5e1',
+  '#94a3b8',
+  '#64748b',
+  '#475569',
+  '#334155',
+  '#1e293b',
+  '#0f172a',
+];
+
+// Tailwind Indigo
+const indigo = [
+  '#eef2ff',
+  '#e0e7ff',
+  '#c7d2fe',
+  '#a5b4fc',
+  '#818cf8',
+  '#6366f1',
+  '#4f46e5',
+  '#4338ca',
+  '#3730a3',
+  '#312e81',
+];
+
 export const makeTheme = ({
-  fontFamily = '"IBM Plex Sans", monospace',
+  fontFamily = 'var(--font-inter), "IBM Plex Sans", monospace',
 }: {
   fontFamily?: string;
 }): MantineThemeOverride => ({
   cursorType: 'pointer',
   fontFamily,
-  primaryColor: 'green',
-  primaryShade: 8,
+  primaryColor: 'indigo',
+  primaryShade: 5, // Indigo-500 is standard primary
   autoContrast: true,
   white: '#fff',
   fontSizes: {
@@ -38,42 +66,21 @@ export const makeTheme = ({
     xl: 'calc(2rem * var(--mantine-scale))',
   },
   colors: {
-    green: [
-      '#eafff6',
-      '#cdfee7',
-      '#a0fad5',
-      '#63f2bf',
-      '#25e2a5',
-      '#00c28a',
-      '#00a475',
-      '#008362',
-      '#00674e',
-      '#005542',
-    ],
-    gray: [
-      '#FAFAFA',
-      '#e6e6ee',
-      '#D7D8DB',
-      '#aeaeb7',
-      '#A1A1AA',
-      '#868691',
-      '#7e7e8b',
-      '#6c6c79',
-      '#5f5f6e',
-      '#515264',
-    ],
+    // Override standard colors with our palette
+    gray: slate as any,
     dark: [
-      '#C1C2C5',
-      '#A6A7AB',
-      '#909296',
-      '#5C5F66',
-      '#373A40',
-      '#2C2E33',
-      '#25262B',
-      '#1A1B1E',
-      '#141517',
-      '#101113',
+      '#f8fafc', // 0 - Slate 50
+      '#f1f5f9', // 1 - Slate 100
+      '#e2e8f0', // 2 - Slate 200
+      '#cbd5e1', // 3 - Slate 300
+      '#94a3b8', // 4 - Slate 400
+      '#64748b', // 5 - Slate 500
+      '#334155', // 6 - Slate 700 (Inputs)
+      '#1e293b', // 7 - Slate 800 (Borders/Secondary BG)
+      '#0f172a', // 8 - Slate 900 (Card BG)
+      '#020617', // 9 - Slate 950 (App BG)
     ],
+    indigo: indigo as any,
   },
   headings: {
     fontFamily,
@@ -98,6 +105,7 @@ export const makeTheme = ({
       styles: {
         label: {
           marginBottom: 4,
+          fontWeight: 500,
         },
         description: {
           marginBottom: 8,
@@ -108,31 +116,32 @@ export const makeTheme = ({
     Select: Select.extend({
       styles: {
         input: {
-          border: '1px solid var(--color-border)',
+          borderColor: 'var(--color-border)',
+          backgroundColor: 'var(--color-bg-field)',
+          '&:focus': {
+            borderColor: 'var(--mantine-color-indigo-5)',
+          },
         },
       },
     }),
     Input: {
       styles: {
         input: {
+          borderColor: 'var(--color-border)',
           backgroundColor: 'var(--color-bg-field)',
-          border: '1px solid var(--color-border)',
+          color: 'var(--color-text)',
         },
       },
     },
     Card: {
-      styles: (_theme: MantineTheme, props: { variant?: string }) => {
-        if (props.variant === 'muted') {
-          return {
-            root: {
-              backgroundColor: 'var(--color-bg-muted)',
-              border: '1px solid var(--color-border)',
-            },
-          };
-        }
+      defaultProps: {
+        withBorder: true,
+      },
+      styles: (_theme: MantineTheme, _props: any) => {
         return {
           root: {
-            backgroundColor: 'var(--color-bg-body)',
+            backgroundColor: 'var(--color-bg-surface)',
+            borderColor: 'var(--color-border)',
           },
         };
       },
@@ -141,74 +150,39 @@ export const makeTheme = ({
       styles: {
         root: {
           borderColor: 'var(--color-border)',
-          borderTopColor: 'var(--color-border)',
-          '--divider-color': 'var(--color-border)',
-          '--item-border-color': 'var(--color-border)',
         },
       },
     },
     Accordion: {
-      styles: (_theme: MantineTheme, props: { variant?: string }) => {
+      styles: (_theme: MantineTheme, _props: any) => {
         const base = {
           control: {
-            '--item-border-color': 'var(--color-border)',
+            '&:hover': {
+              backgroundColor: 'var(--color-bg-muted)',
+            },
           },
           item: {
             borderColor: 'var(--color-border)',
           },
         };
-        if (props.variant === 'noPadding') {
-          return {
-            ...base,
-            content: {
-              paddingInline: 0,
-            },
-            control: {
-              paddingInlineStart: 0,
-            },
-          };
-        }
         return base;
       },
     },
-    UnstyledButton: {
-      styles: {
-        root: {
-          '--item-border-color': 'var(--color-border)',
-        },
-      },
-    },
     Paper: {
-      classNames: (_theme: MantineTheme, props: { variant?: string }) => {
-        if (props.variant === 'muted') {
-          return {
-            root: 'paper-muted',
-          };
-        }
-        return {};
-      },
-      styles: (_theme: MantineTheme, props: { variant?: string }) => {
-        if (props.variant === 'muted') {
-          return {
-            root: {
-              backgroundColor: 'var(--color-bg-muted)',
-              border: '1px solid var(--color-border)',
-            },
-          };
-        }
-        return {
-          root: {
-            border: '1px solid var(--color-border)',
-          },
-        };
-      },
+      styles: (_theme: MantineTheme, _props: any) => ({
+        root: {
+          backgroundColor: 'var(--color-bg-surface)',
+          borderColor: 'var(--color-border)',
+          color: 'var(--color-text)',
+        },
+      }),
     },
     Text: Text.extend({
-      styles: (theme, props) => {
+      styles: (_theme, props) => {
         if (props.variant === 'danger') {
           return {
             root: {
-              color: 'var(--color-text-danger)',
+              color: 'var(--mantine-color-red-6)',
             },
           };
         }
@@ -216,12 +190,15 @@ export const makeTheme = ({
       },
     }),
     Button: Button.extend({
-      vars: (theme, props) => {
+      defaultProps: {
+        fw: 500,
+      },
+      vars: (_theme, props) => {
         if (props.size === 'xxs') {
           return {
             root: {
               '--button-height': rem(22),
-              '--button-padding-x': rem(4),
+              '--button-padding-x': rem(8),
               '--button-fz': rem(12),
             },
           };
@@ -276,10 +253,7 @@ export const makeTheme = ({
     SegmentedControl: {
       styles: {
         root: {
-          background: 'var(--color-bg-field)',
-        },
-        indicator: {
-          background: 'var(--color-bg-field-highlighted)',
+          backgroundColor: 'var(--color-bg-surface)',
         },
       },
     },
@@ -289,79 +263,17 @@ export const makeTheme = ({
         color: 'gray',
       },
       styles: (_theme, props) => {
-        // Subtle variant stays transparent
         if (props.variant === 'subtle') {
           return {
             root: {
-              backgroundColor: 'transparent',
-              color: 'var(--color-text)',
+              color: 'var(--mantine-color-gray-4)',
               '&:hover': {
                 backgroundColor: 'var(--color-bg-hover)',
-              },
-              '&:active': {
-                backgroundColor: 'var(--color-bg-muted)',
+                color: 'var(--color-text)',
               },
             },
           };
         }
-
-        // Default variant
-        if (props.variant === 'default') {
-          return {
-            root: {
-              backgroundColor: 'var(--color-bg-hover)',
-              color: 'var(--color-text)',
-              border: 'none',
-              '&:hover': {
-                backgroundColor: 'var(--color-bg-muted)',
-              },
-              '&:active': {
-                backgroundColor: 'var(--color-bg-muted)',
-              },
-            },
-          };
-        }
-
-        // Primary variant - light green style
-        if (props.variant === 'primary') {
-          return {
-            root: {
-              backgroundColor: 'var(--mantine-color-green-light)',
-              color: 'var(--mantine-color-green-light-color)',
-              '&:hover': {
-                backgroundColor: 'var(--mantine-color-green-light-hover)',
-              },
-            },
-          };
-        }
-
-        // Secondary variant - similar to default
-        if (props.variant === 'secondary') {
-          return {
-            root: {
-              backgroundColor: 'var(--color-bg-surface)',
-              color: 'var(--color-text)',
-              border: '1px solid var(--color-border)',
-              '&:hover': {
-                backgroundColor: 'var(--color-bg-hover)',
-              },
-            },
-          };
-        }
-
-        // Danger variant - light red style
-        if (props.variant === 'danger') {
-          return {
-            root: {
-              backgroundColor: 'var(--mantine-color-red-light)',
-              color: 'var(--mantine-color-red-light-color)',
-              '&:hover': {
-                backgroundColor: 'var(--mantine-color-red-light-hover)',
-              },
-            },
-          };
-        }
-
         return {};
       },
     }),

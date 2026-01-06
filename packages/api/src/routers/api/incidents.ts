@@ -1145,7 +1145,7 @@ function generateIncidentReport(incident: any): string {
   report += `- **Incident ID:** ${incident._id}\n`;
   report += `- **Team ID:** ${incident.team}\n`;
   report += `- **Report Generated:** ${formatDate(new Date())}\n`;
-  report += `- **HyperDX Incident Management System**\n`;
+  report += `- **Tracefox Incident Management System**\n`;
 
   return report;
 }

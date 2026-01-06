@@ -79,7 +79,7 @@ export const AppNavUserMenu = ({
           })}
         >
           <Group gap="xs" wrap="nowrap" miw={0}>
-            <Avatar size="sm" radius="xl" color="green">
+            <Avatar size="sm" radius="xl" color="indigo">
               {initials}
             </Avatar>
             {!isCollapsed && (
@@ -149,8 +149,8 @@ export const AppNavUserMenu = ({
                 }
                 leftSection={
                   teamsData.activeTeamId != null &&
-                  teamsData.activeTeamId === t.id ? (
-                    <Badge size="xs" color="green">
+                    teamsData.activeTeamId === t.id ? (
+                    <Badge size="xs" color="indigo">
                       Active
                     </Badge>
                   ) : undefined
@@ -263,14 +263,14 @@ export const AppNavHelpMenu = ({
           <Menu.Dropdown>
             <Menu.Label>
               Help{' '}
-              {version && (
+              {/* {version && (
                 <Text size="xs" component="span">
                   v{version}
                 </Text>
-              )}
+              )} */}
             </Menu.Label>
 
-            <Menu.Item
+            {/* <Menu.Item
               data-testid="documentation-menu-item"
               href="https://clickhouse.com/docs/use-cases/observability/clickstack"
               component="a"
@@ -286,7 +286,7 @@ export const AppNavHelpMenu = ({
               target="_blank"
             >
               Discord Community
-            </Menu.Item>
+            </Menu.Item> */}
             <Menu.Item
               data-testid="setup-instructions-menu-item"
               leftSection={<IconBulb size={16} />}

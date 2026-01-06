@@ -116,14 +116,14 @@ export async function queryClickHouseMetrics(
       query_params: queryParams,
     });
 
-    const json = await result.json<ResponseJSON<{
+    const json = await result.json<{
       table: string;
       partitionDate: string;
       partitionHour: number;
       bytes: string | number;
       rows: string | number;
-    }>>();
-    
+    }>();
+
     // Map the results to match our interface and ensure proper types
     const mappedData: PartitionMetrics[] = (json.data || []).map(row => ({
       table: row.table,

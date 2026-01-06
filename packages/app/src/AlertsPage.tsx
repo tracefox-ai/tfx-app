@@ -544,7 +544,7 @@ export default function AlertsPage() {
   return (
     <div data-testid="alerts-page" className="AlertsPage">
       <Head>
-        <title>Alerts - HyperDX</title>
+        <title>Alerts</title>
       </Head>
       <PageHeader>Alerts</PageHeader>
       <div className="my-4">

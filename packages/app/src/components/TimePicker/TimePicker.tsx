@@ -223,7 +223,7 @@ const TimePickerComponent = ({
           data-testid="time-picker-input"
           leftSection={
             isLiveMode ? (
-              <IconBolt size={16} className="text-success" />
+              <IconBolt size={16} className="text-indigo-500" />
             ) : (
               <IconCalendarFilled size={16} />
             )
@@ -231,7 +231,7 @@ const TimePickerComponent = ({
           styles={{
             input: {
               color: isLiveMode
-                ? 'var(--color-text-success)'
+                ? 'var(--color-text-primary)'
                 : 'var(--color-text)',
             },
           }}
@@ -370,7 +370,7 @@ const TimePickerComponent = ({
                     const midpoint = new Date(
                       (form.values.startDate.getTime() +
                         form.values.endDate.getTime()) /
-                        2,
+                      2,
                     );
                     const halfRangeMs =
                       (form.values.endDate.getTime() -

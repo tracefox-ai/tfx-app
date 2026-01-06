@@ -43,9 +43,8 @@ export function generateSearchUrl({
     tq: dateRangeToString([fromDate, toDate], isUTC ?? false),
     ...(lineId ? { lid: lineId } : {}),
   });
-  return `/search${
-    savedSearchId != null ? `/${savedSearchId}` : ''
-  }?${qparams.toString()}`;
+  return `/search${savedSearchId != null ? `/${savedSearchId}` : ''
+    }?${qparams.toString()}`;
 }
 
 export function useFirstNonNullValue<T>(value: T): T {
@@ -152,7 +151,7 @@ export const useDebounce = <T>(
     () => {
       if (shouldBeImmediate) {
         setDebouncedValue(value);
-        return () => {};
+        return () => { };
       }
 
       // Update debounced value after delay
@@ -395,29 +394,29 @@ export const getLogLevelClass = (lvl: string | undefined) => {
     : level.startsWith('warn')
       ? 'warn'
       : level.startsWith('info') ||
-          level.startsWith('debug') ||
-          level.startsWith('ok') ||
-          level.startsWith('notice') ||
-          level.startsWith('verbose') ||
-          level.startsWith('unset') ||
-          level.startsWith('trace')
+        level.startsWith('debug') ||
+        level.startsWith('ok') ||
+        level.startsWith('notice') ||
+        level.startsWith('verbose') ||
+        level.startsWith('unset') ||
+        level.startsWith('trace')
         ? 'info'
         : undefined;
 };
 
 // Accessible chart colors
 export const COLORS = [
-  '#20c997', // Green
-  // '#F81358', // Red
+  '#6366f1', // Indigo
+  '#8b5cf6', // Violet
+  '#ec4899', // Pink
+  '#3b82f6', // Blue
+  '#06b6d4', // Cyan
+  '#10b981', // Emerald (Green alternative)
+  '#f59e0b', // Amber
+  '#f43f5e', // Rose
   '#8250dc', // Light Purple
   '#cdad7a', // Tan
-  '#0d6efd', // Blue
-  '#fd7e14', // Orange
-  '#0dcaf0', // Turqoise
   '#828c95', // Grey
-  '#ff9382', // Coral
-  '#39b5ab', // Olive-tealish?
-  '#ffa600', // Yellow
 ];
 
 export function hashCode(str: string) {
@@ -444,7 +443,7 @@ export const semanticKeyedColor = (
       ? '#d63384' // magenta
       : logLevel === 'warn'
         ? '#ffc107' // yellow
-        : '#20c997'; // green;
+        : '#6366f1'; // indigo;
   }
 
   return COLORS[index % COLORS.length];
@@ -456,7 +455,7 @@ export const logLevelColor = (key: string | number | undefined) => {
     ? '#F81358' // red
     : logLevel === 'warn'
       ? '#ffc107' // yellow
-      : '#20c997'; // green;
+      : '#6366f1'; // indigo;
 };
 
 // order of colors for sorting. green on bottom, then yellow, then red
@@ -474,7 +473,7 @@ const getLevelColor = (logLevel?: string) => {
     ? '#d63384' // magenta
     : logLevel === 'warn'
       ? '#ffc107' // yellow
-      : '#20c997'; // green;
+      : '#6366f1'; // indigo;
 };
 
 export const getColorProps = (index: number, level: string): string => {
@@ -528,10 +527,10 @@ export const useDrag = (
   },
 ) => {
   const {
-    onPointerDown = () => {},
-    onPointerUp = () => {},
-    onPointerMove = () => {},
-    onDrag = () => {},
+    onPointerDown = () => { },
+    onPointerUp = () => { },
+    onPointerMove = () => { },
+    onDrag = () => { },
   } = options;
 
   const [isDragging, setIsDragging] = useState(false);
@@ -639,13 +638,13 @@ export const mergePath = (path: string[], jsonColumns: string[] = []) => {
   }
   return jsonColumns.includes(key)
     ? `${key}.${rest
-        .map(v =>
-          v
-            .split('.')
-            .map(v => (v.startsWith('`') && v.endsWith('`') ? v : `\`${v}\``))
-            .join('.'),
-        )
-        .join('.')}`
+      .map(v =>
+        v
+          .split('.')
+          .map(v => (v.startsWith('`') && v.endsWith('`') ? v : `\`${v}\``))
+          .join('.'),
+      )
+      .join('.')}`
     : `${key}['${rest.join("']['")}']`;
 };
 
@@ -694,8 +693,8 @@ export function getMetricTableName(
   return metricType == null
     ? source.from.tableName
     : source.metricTables?.[
-        metricType.toLowerCase() as keyof typeof source.metricTables
-      ];
+    metricType.toLowerCase() as keyof typeof source.metricTables
+    ];
 }
 
 /**

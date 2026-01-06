@@ -34,7 +34,7 @@
     "setup": "yarn install && husky install",
     "build:common-utils": "nx run @hyperdx/common-utils:dev:build",
     "app:dev": "concurrently -k -n 'API,APP,ALERTS-TASK,COMMON-UTILS' -c 'green.bold,blue.bold,yellow.bold,magenta' 'nx run @hyperdx/api:dev' 'nx run @hyperdx/app:dev' 'nx run @hyperdx/api:dev-task check-alerts' 'nx run @hyperdx/common-utils:dev'",
-    "app:dev:saas": "concurrently -k -n 'API,APP,OTLP-GATEWAY,ALERTS-TASK,BILLING-TASK,TELEMETRY-ANALYSIS,COMMON-UTILS' -c 'green.bold,purple.bold,blue.bold,white.bold,yellow.bold,cyan.bold,orange.bold,magenta' 'nx run @hyperdx/api:dev' 'nx run @hyperdx/app:dev' 'HYPERDX_LOG_LEVEL=error yarn workspace @hyperdx/api dev:gateway' 'nx run @hyperdx/api:dev-task check-alerts' 'nx run @hyperdx/api:dev-task calculate-data-ingestion' 'nx run @hyperdx/api:dev-task telemetry-analysis' 'nx run @hyperdx/common-utils:dev'",
+    "app:dev:saas": "concurrently -k -n 'API,APP,OTLP-GATEWAY,ALERTS-TASK,BILLING-TASK,TELEMETRY-ANALYSIS,COMMON-UTILS' -c 'green.bold,purple.bold,blue.bold,white.bold,yellow.bold,cyan.bold,orange.bold,magenta' 'nx run @hyperdx/api:dev' 'nx run @hyperdx/app:dev' 'nx run @hyperdx/api:dev:gateway' 'nx run @hyperdx/api:dev-task check-alerts' 'nx run @hyperdx/api:dev-task calculate-data-ingestion' 'nx run @hyperdx/api:dev-task telemetry-analysis' 'nx run @hyperdx/common-utils:dev'",
     "app:dev:local": "concurrently -k -n 'APP,COMMON-UTILS' -c 'blue.bold,magenta' 'nx run @hyperdx/app:dev:local' 'nx run @hyperdx/common-utils:dev'",
     "app:lint": "nx run @hyperdx/app:ci:lint",
     "app:storybook": "nx run @hyperdx/app:storybook",

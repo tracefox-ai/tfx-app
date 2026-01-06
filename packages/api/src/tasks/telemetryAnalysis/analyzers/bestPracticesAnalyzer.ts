@@ -2,7 +2,7 @@ import { ResponseJSON } from '@hyperdx/common-utils/dist/clickhouse';
 import { ClickhouseClient } from '@hyperdx/common-utils/dist/clickhouse/node';
 import mongoose from 'mongoose';
 
-import Connection from '@/models/connection';
+import Connection, { IConnection } from '@/models/connection';
 import logger from '@/utils/logger';
 
 export interface BestPracticePattern {
@@ -28,7 +28,7 @@ export interface BestPracticesAnalysisResult {
  * Analyzes best practices patterns from telemetry data
  */
 export async function analyzeBestPractices(
-  connection: mongoose.HydratedDocument<Connection>,
+  connection: mongoose.HydratedDocument<IConnection>,
   database: string,
   startTime: Date,
   endTime: Date,
@@ -82,11 +82,11 @@ export async function analyzeBestPractices(
       },
     });
 
-    const logLevelJson = await logLevelResult.json<ResponseJSON<{
+    const logLevelJson = await logLevelResult.json<{
       serviceName: string;
       severityText: string;
       count: string;
-    }>>();
+    }>();
 
     // Query for structured logging (logs with attributes)
     const structuredLoggingQuery = `
@@ -114,11 +114,11 @@ export async function analyzeBestPractices(
       },
     });
 
-    const structuredJson = await structuredResult.json<ResponseJSON<{
+    const structuredJson = await structuredResult.json<{
       serviceName: string;
       totalLogs: string;
       logsWithAttributes: string;
-    }>>();
+    }>();
 
     // Query for metric naming patterns
     const metricNamingQuery = `
@@ -155,11 +155,11 @@ export async function analyzeBestPractices(
       },
     });
 
-    const metricJson = await metricResult.json<ResponseJSON<{
+    const metricJson = await metricResult.json<{
       serviceName: string;
       metricCount: string;
       nonStandardMetrics: string;
-    }>>();
+    }>();
 
     // Process log level data
     const logLevelMap = new Map<string, Record<string, number>>();

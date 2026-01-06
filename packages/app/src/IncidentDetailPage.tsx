@@ -275,7 +275,7 @@ export default function IncidentDetailPage() {
   return (
     <div data-testid="incident-detail-page" className="IncidentDetailPage">
       <Head>
-        <title>{incident.title} - Incidents - HyperDX</title>
+        <title>{incident.title} - Incidents</title>
       </Head>
       <PageHeader>
         <Group justify="space-between" style={{ width: '100%' }}>

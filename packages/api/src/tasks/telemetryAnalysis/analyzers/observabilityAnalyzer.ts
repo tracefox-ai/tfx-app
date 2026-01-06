@@ -2,7 +2,7 @@ import { ResponseJSON } from '@hyperdx/common-utils/dist/clickhouse';
 import { ClickhouseClient } from '@hyperdx/common-utils/dist/clickhouse/node';
 import mongoose from 'mongoose';
 
-import Connection from '@/models/connection';
+import Connection, { IConnection } from '@/models/connection';
 import logger from '@/utils/logger';
 
 export interface ObservabilityPattern {
@@ -30,7 +30,7 @@ export interface ObservabilityAnalysisResult {
  * Analyzes observability patterns from telemetry data
  */
 export async function analyzeObservability(
-  connection: mongoose.HydratedDocument<Connection>,
+  connection: mongoose.HydratedDocument<IConnection>,
   database: string,
   startTime: Date,
   endTime: Date,
@@ -147,7 +147,7 @@ export async function analyzeObservability(
       },
     });
 
-    const json = await result.json<ResponseJSON<{
+    const json = await result.json<{
       serviceName: string;
       hasLogs: string;
       hasTraces: string;
@@ -155,7 +155,7 @@ export async function analyzeObservability(
       traceCoverage: string;
       incompleteTraces: string;
       logCoverage: string;
-    }>>();
+    }>();
 
     const patterns: ObservabilityPattern[] = (json.data || []).map(row => ({
       serviceName: row.serviceName,

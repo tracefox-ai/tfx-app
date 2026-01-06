@@ -33,6 +33,7 @@ import {
   DEFAULT_PRICING,
   type IngestionBreakdown,
   type BillingData,
+  type ServiceBilling,
 } from '@/utils/billing';
 
 const router = express.Router();
@@ -710,7 +711,7 @@ router.get('/billing/breakdown', async (req, res, next) => {
     });
 
     // Get service-level breakdown if requested
-    let serviceBreakdown = null;
+    let serviceBreakdown: ServiceBilling[] | null = null;
     if (req.query.includeServices === 'true') {
       const connection = await Connection.findOne({
         team: teamId,

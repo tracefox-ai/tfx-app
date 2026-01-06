@@ -16,7 +16,7 @@ import logger from '@/utils/logger';
 
 type CachedAuth = {
   teamId: string;
-  assignedShard: string;
+  assignedShard?: string;
   expiresAt: number;
 };
 
@@ -159,14 +159,14 @@ export async function startOtlpGateway() {
   const httpServer = http.createServer(async (req, res) => {
     const startTime = Date.now();
     const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // Track data even if auth fails - use Transform to capture while forwarding
     let bytesReceived = 0;
     let firstChunk: Buffer | null = null;
     const maxSampleSize = 1024;
     let authFailed = false;
     let teamId: string | null = null;
-    
+
     // Transform stream that captures data but forwards it
     const dataCaptureTransform = new Transform({
       transform(chunk: Buffer, encoding, callback) {
@@ -201,19 +201,19 @@ export async function startOtlpGateway() {
         callback();
       },
     });
-    
+
     try {
       const authHeader = getAuthHeader(req.headers);
-      const tokenPrefix = authHeader 
+      const tokenPrefix = authHeader
         ? (typeof authHeader === 'string' ? authHeader.substring(0, 20) + '...' : 'multiple')
         : 'none';
-      
+
       // Log all header keys for debugging
       const headerKeys = Object.keys(req.headers);
-      const authHeaderKeys = headerKeys.filter(key => 
+      const authHeaderKeys = headerKeys.filter(key =>
         key.toLowerCase() === 'authorization'
       );
-      
+
       logger.info({
         requestId,
         method: req.method,
@@ -308,7 +308,7 @@ export async function startOtlpGateway() {
       }, 'OTLP HTTP gateway: authenticated request');
 
       const target = pickShardEndpoint(
-        auth.assignedShard,
+        auth.assignedShard || 'shard-0',
         config.INGESTION_SHARD_HTTP_ENDPOINTS,
       );
       if (!target) {
@@ -332,7 +332,7 @@ export async function startOtlpGateway() {
 
       // Track response
       const originalWriteHead = res.writeHead.bind(res);
-      res.writeHead = function(statusCode: number, ...args: any[]) {
+      res.writeHead = function (statusCode: number, ...args: any[]) {
         const duration = Date.now() - startTime;
         logger.info({
           requestId,
@@ -393,7 +393,7 @@ export async function startOtlpGateway() {
   // gRPC (OTLP/gRPC, typically 4317) over h2c proxy.
   const sessions = new Map<string, ClientHttp2Session>();
   const sessionPingIntervals = new Map<string, NodeJS.Timeout>();
-  
+
   const getClientSession = (targetBaseUrl: string): Promise<ClientHttp2Session> => {
     return new Promise((resolve, reject) => {
       const existing = sessions.get(targetBaseUrl);
@@ -413,7 +413,7 @@ export async function startOtlpGateway() {
             const timeout = setTimeout(() => {
               reject(new Error(`Connection timeout for ${targetBaseUrl}`));
             }, 5000); // 5 second timeout
-            
+
             existing.once('connect', () => {
               clearTimeout(timeout);
               resolve(existing);
@@ -429,13 +429,13 @@ export async function startOtlpGateway() {
           return;
         }
       }
-      
+
       // Create new HTTP/2 session with keepalive settings
       const s = http2.connect(targetBaseUrl, {
         // Enable keepalive to prevent idle connection timeouts
         // These settings help maintain the connection and detect dead connections
       });
-      
+
       // Connection timeout
       const timeout = setTimeout(() => {
         if (!s.destroyed) {
@@ -443,17 +443,17 @@ export async function startOtlpGateway() {
         }
         reject(new Error(`Connection timeout for ${targetBaseUrl}`));
       }, 5000); // 5 second timeout
-      
+
       // Wait for connection to be established before resolving
       s.once('connect', () => {
         clearTimeout(timeout);
-        
+
         // Double-check session is still valid after connect
         if (s.destroyed || s.closed) {
           reject(new Error(`Session closed immediately after connect for ${targetBaseUrl}`));
           return;
         }
-        
+
         // Set up periodic ping to keep connection alive and detect dead connections
         // Ping every 30 seconds (typical HTTP/2 keepalive interval)
         const pingInterval = setInterval(() => {
@@ -483,17 +483,17 @@ export async function startOtlpGateway() {
             sessionPingIntervals.delete(targetBaseUrl);
           }
         }, 30000); // Ping every 30 seconds
-        
+
         sessions.set(targetBaseUrl, s);
         sessionPingIntervals.set(targetBaseUrl, pingInterval);
         resolve(s);
       });
-      
+
       s.on('error', (err) => {
         clearTimeout(timeout);
         const isConnectionReset = err.code === 'ECONNRESET';
         const isDuringConnection = s.connecting;
-        
+
         // ECONNRESET during connection setup is a real error - connection failed
         if (isDuringConnection) {
           logger.error({ err, targetBaseUrl }, 'OTLP gRPC gateway: HTTP/2 connection failed');
@@ -506,7 +506,7 @@ export async function startOtlpGateway() {
           reject(err);
           return;
         }
-        
+
         // ECONNRESET after connection is established is usually just the server closing idle connections
         // This is normal behavior and we'll just recreate the session on next use
         // Only log non-ECONNRESET errors as they indicate real problems
@@ -516,7 +516,7 @@ export async function startOtlpGateway() {
           // ECONNRESET on established connection - this is expected, don't log
           // The session will be recreated on next use
         }
-        
+
         sessions.delete(targetBaseUrl);
         const pingInterval = sessionPingIntervals.get(targetBaseUrl);
         if (pingInterval) {
@@ -524,7 +524,7 @@ export async function startOtlpGateway() {
           sessionPingIntervals.delete(targetBaseUrl);
         }
       });
-      
+
       s.on('close', () => {
         clearTimeout(timeout);
         sessions.delete(targetBaseUrl);
@@ -538,16 +538,16 @@ export async function startOtlpGateway() {
   };
 
   const grpcServer = http2.createServer();
-  
+
   // Handle server-level errors
   grpcServer.on('error', (err) => {
     logger.error({ err }, 'OTLP gRPC gateway: server error');
   });
-  
+
   grpcServer.on('stream', async (stream, headers) => {
     const startTime = Date.now();
     const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // Track data even if auth fails
     let bytesReceived = 0;
     let firstChunk: Buffer | null = null;
@@ -557,7 +557,7 @@ export async function startOtlpGateway() {
     let teamId: string | null = null;
     let streamResponded = false;
     let streamEnded = false;
-    
+
     // Helper function to safely respond to stream
     const safeRespond = (headers: http2.OutgoingHttpHeaders) => {
       if (!streamResponded && !stream.destroyed && !stream.closed) {
@@ -569,7 +569,7 @@ export async function startOtlpGateway() {
         }
       }
     };
-    
+
     // Helper function to safely end stream
     const safeEnd = () => {
       if (!streamEnded && !stream.destroyed) {
@@ -581,12 +581,12 @@ export async function startOtlpGateway() {
         }
       }
     };
-    
+
     // Handle stream errors and close events
     stream.on('error', (err) => {
       logger.warn({ err, requestId, teamId }, 'OTLP gRPC gateway: stream error');
     });
-    
+
     stream.on('close', () => {
       // Log data when stream closes
       if (bytesReceived > 0) {
@@ -610,19 +610,19 @@ export async function startOtlpGateway() {
         }
       }
     });
-    
+
     try {
       const authHeader = getAuthHeader(headers);
-      const tokenPrefix = authHeader 
+      const tokenPrefix = authHeader
         ? (typeof authHeader === 'string' ? authHeader.substring(0, 20) + '...' : 'multiple')
         : 'none';
-      
+
       // Log all header keys for debugging
       const headerKeys = Object.keys(headers);
-      const authHeaderKeys = headerKeys.filter(key => 
+      const authHeaderKeys = headerKeys.filter(key =>
         key.toLowerCase() === 'authorization'
       );
-      
+
       logger.info({
         requestId,
         method: headers[':method'],
@@ -680,7 +680,7 @@ export async function startOtlpGateway() {
       }, 'OTLP gRPC gateway: authenticated stream');
 
       const target = pickShardEndpoint(
-        auth.assignedShard,
+        auth.assignedShard || 'shard-0',
         config.INGESTION_SHARD_GRPC_ENDPOINTS,
       );
       if (!target) {
@@ -754,7 +754,7 @@ export async function startOtlpGateway() {
       let session: ClientHttp2Session;
       try {
         session = await getClientSession(target);
-        
+
         // Double-check session is ready after getting it (might have been closed between await and here)
         if (session.destroyed || session.closed || session.connecting) {
           // Session became invalid, try to get a new one
@@ -767,7 +767,7 @@ export async function startOtlpGateway() {
             closed: session.closed,
             connecting: session.connecting,
           }, 'OTLP gRPC gateway: session invalid after connect, retrying');
-          
+
           // Remove invalid session and try again
           sessions.delete(target);
           const pingInterval = sessionPingIntervals.get(target);
@@ -775,7 +775,7 @@ export async function startOtlpGateway() {
             clearInterval(pingInterval);
             sessionPingIntervals.delete(target);
           }
-          
+
           // Retry once
           try {
             session = await getClientSession(target);
@@ -804,7 +804,7 @@ export async function startOtlpGateway() {
         safeEnd();
         return;
       }
-      
+
       // Final check if session is ready (not destroyed or closed)
       if (session.destroyed || session.closed) {
         logger.error({
@@ -844,7 +844,7 @@ export async function startOtlpGateway() {
       const proxyStream = session.request(reqHeaders);
       let responseReceived = false;
       let dataReceivedFromProxy = false;
-      
+
       // Track when data flows
       proxyStream.on('data', () => {
         if (!dataReceivedFromProxy) {
@@ -857,7 +857,7 @@ export async function startOtlpGateway() {
           }, 'OTLP gRPC gateway: first data received from proxy');
         }
       });
-      
+
       proxyStream.on('response', proxyHeaders => {
         responseReceived = true;
         const statusCode = proxyHeaders[':status'] as number | undefined;
@@ -873,7 +873,7 @@ export async function startOtlpGateway() {
         }, 'OTLP gRPC gateway: response received');
         safeRespond(proxyHeaders as any);
       });
-      
+
       proxyStream.on('error', (err) => {
         const duration = Date.now() - startTime;
         // ECONNRESET is a common transient error when the server closes the connection
@@ -902,17 +902,17 @@ export async function startOtlpGateway() {
         safeRespond({ ':status': 502 });
         safeEnd();
       });
-      
+
       // Handle stream close events
       stream.on('aborted', () => {
-        logger.warn({ 
-          requestId, 
+        logger.warn({
+          requestId,
           teamId,
           durationMs: Date.now() - startTime,
         }, 'OTLP gRPC gateway: stream aborted by client');
         proxyStream.destroy();
       });
-      
+
       proxyStream.on('close', () => {
         const duration = Date.now() - startTime;
         logger.info({
@@ -926,7 +926,7 @@ export async function startOtlpGateway() {
         }, 'OTLP gRPC gateway: proxy stream closed');
         safeEnd();
       });
-      
+
       // Handle session errors that might occur while stream is active
       const sessionErrorHandler = (err: Error) => {
         // If session dies while stream is active, clean up the stream

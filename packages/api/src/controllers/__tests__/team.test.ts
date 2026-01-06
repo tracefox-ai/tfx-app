@@ -1,4 +1,4 @@
-import { createTeam, getTeam, getTeamByApiKey } from '@/controllers/team';
+import { createTeam, getTeam } from '@/controllers/team';
 import { clearDBCollections, closeDB, connectDB } from '@/fixtures';
 
 describe('team controller', () => {

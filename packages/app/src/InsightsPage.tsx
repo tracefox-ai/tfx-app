@@ -16,12 +16,12 @@ import { IconFilter, IconRefresh } from '@tabler/icons-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { PageHeader } from '@/components/PageHeader';
 import InsightCard from '@/components/InsightCard';
+import { PageHeader } from '@/components/PageHeader';
 import { withAppNav } from '@/layout';
 import {
-  useTelemetryInsights,
   TelemetryInsightFilters,
+  useTelemetryInsights,
   useTriggerAnalysis,
 } from '@/telemetryInsights';
 
@@ -70,10 +70,17 @@ export default function InsightsPage() {
   return (
     <ErrorBoundary>
       <Container fluid p="xl">
-        <PageHeader
-          title="AI Telemetry Insights"
-          description="AI-powered suggestions to improve reliability, observability, and best practices"
-        />
+        <PageHeader>
+          <Stack gap="xs">
+            <Text size="xl" fw={600}>
+              AI Telemetry Insights
+            </Text>
+            <Text size="sm" c="dimmed">
+              AI-powered suggestions to improve reliability, observability, and
+              best practices
+            </Text>
+          </Stack>
+        </PageHeader>
 
         <Stack gap="md" mt="xl">
           <Group justify="space-between" align="flex-end">
@@ -87,7 +94,7 @@ export default function InsightsPage() {
                   { value: 'resolved', label: 'Resolved' },
                 ]}
                 value={statusFilter || ''}
-                onChange={(value) =>
+                onChange={value =>
                   setStatusFilter(
                     value as 'active' | 'dismissed' | 'resolved' | undefined,
                   )
@@ -105,7 +112,7 @@ export default function InsightsPage() {
                   { value: 'best_practices', label: 'Best Practices' },
                 ]}
                 value={categoryFilter || ''}
-                onChange={(value) =>
+                onChange={value =>
                   setCategoryFilter(
                     value as
                       | 'reliability'
@@ -122,7 +129,7 @@ export default function InsightsPage() {
                 label="Service"
                 placeholder="Filter by service name"
                 value={serviceFilter}
-                onChange={(e) => setServiceFilter(e.target.value)}
+                onChange={e => setServiceFilter(e.target.value)}
                 style={{ minWidth: 200 }}
               />
             </Group>
@@ -152,7 +159,10 @@ export default function InsightsPage() {
           )}
 
           {error && (
-            <Box p="md" style={{ backgroundColor: 'var(--mantine-color-red-1)' }}>
+            <Box
+              p="md"
+              style={{ backgroundColor: 'var(--mantine-color-red-1)' }}
+            >
               <Text c="red">Error loading insights: {error.message}</Text>
             </Box>
           )}
@@ -181,7 +191,7 @@ export default function InsightsPage() {
                     variant="subtle"
                     size="xs"
                     disabled={page === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
                   >
                     Previous
                   </Button>
@@ -192,7 +202,9 @@ export default function InsightsPage() {
                     variant="subtle"
                     size="xs"
                     disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    onClick={() =>
+                      setPage(p => Math.min(totalPages - 1, p + 1))
+                    }
                   >
                     Next
                   </Button>
@@ -200,7 +212,7 @@ export default function InsightsPage() {
               </Group>
 
               <Stack gap="md">
-                {insights.map((insight) => (
+                {insights.map(insight => (
                   <InsightCard key={insight._id} insight={insight} />
                 ))}
               </Stack>
@@ -213,4 +225,3 @@ export default function InsightsPage() {
 }
 
 InsightsPage.getLayout = withAppNav;
-

@@ -22,7 +22,7 @@ export const userPreferencesAtom = atomWithStorage<UserPreferences>(
     isUTC: false,
     timeFormat: '12h',
     theme: 'dark',
-    font: 'IBM Plex Mono',
+    font: 'Inter',
   },
 );
 

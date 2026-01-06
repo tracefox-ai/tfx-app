@@ -49,7 +49,7 @@ export default function LandingHeader({
             <Group gap="lg" visibleFrom="lg">
               <Anchor
                 href="https://hyperdx.io"
-                c={activeKey === 'cloud' ? 'green' : 'gray'}
+                c={activeKey === 'cloud' ? 'indigo' : 'gray'}
                 underline="never"
                 style={{ fontWeight: activeKey === 'cloud' ? 600 : 400 }}
                 size="sm"
@@ -58,7 +58,7 @@ export default function LandingHeader({
               </Anchor>
               <Anchor
                 href="https://clickhouse.com/docs/use-cases/observability/clickstack"
-                c={activeKey === 'docs' ? 'green' : 'gray'}
+                c={activeKey === 'docs' ? 'indigo' : 'gray'}
                 underline="never"
                 style={{ fontWeight: activeKey === 'docs' ? 600 : 400 }}
                 size="sm"
@@ -68,7 +68,7 @@ export default function LandingHeader({
               {!isLoggedIn && installation?.isTeamExisting === true && (
                 <Anchor
                   href="/login"
-                  c={activeKey === '/login' ? 'green' : 'gray'}
+                  c={activeKey === '/login' ? 'indigo' : 'gray'}
                   underline="never"
                   style={{ fontWeight: activeKey === '/login' ? 600 : 400 }}
                   size="sm"
@@ -80,7 +80,7 @@ export default function LandingHeader({
                 <>
                   <Anchor
                     href="/login"
-                    c={activeKey === '/login' ? 'green' : 'gray'}
+                    c={activeKey === '/login' ? 'indigo' : 'gray'}
                     underline="never"
                     style={{ fontWeight: activeKey === '/login' ? 600 : 400 }}
                     size="sm"
@@ -89,7 +89,7 @@ export default function LandingHeader({
                   </Anchor>
                   {activeKey !== '/signup' && (
                     <Link href="/signup">
-                      <Button variant="outline" color="green" size="sm">
+                      <Button variant="outline" color="indigo" size="sm">
                         Sign up
                       </Button>
                     </Link>
@@ -101,14 +101,14 @@ export default function LandingHeader({
                 activeKey !== '/signup' &&
                 installation?.isTeamExisting === false && (
                   <Link href="/signup">
-                    <Button variant="outline" color="green" size="sm">
+                    <Button variant="outline" color="indigo" size="sm">
                       Setup Account
                     </Button>
                   </Link>
                 )}
               {isLoggedIn && (
                 <Link href="/search">
-                  <Button variant="outline" color="green" size="sm">
+                  <Button variant="outline" color="indigo" size="sm">
                     Go to Search
                   </Button>
                 </Link>
@@ -155,7 +155,7 @@ export default function LandingHeader({
                     <Link href="/signup">
                       <Button
                         variant="outline"
-                        color="green"
+                        color="indigo"
                         size="sm"
                         fullWidth
                       >
@@ -170,14 +170,14 @@ export default function LandingHeader({
                 activeKey !== '/signup' &&
                 installation?.isTeamExisting === false && (
                   <Link href="/signup">
-                    <Button variant="outline" color="green" size="sm" fullWidth>
+                    <Button variant="outline" color="indigo" size="sm" fullWidth>
                       Setup Account
                     </Button>
                   </Link>
                 )}
               {isLoggedIn && (
                 <Link href="/search">
-                  <Button variant="outline" color="green" size="sm" fullWidth>
+                  <Button variant="outline" color="indigo" size="sm" fullWidth>
                     Go to Search
                   </Button>
                 </Link>

@@ -2,7 +2,7 @@ import { ResponseJSON } from '@hyperdx/common-utils/dist/clickhouse';
 import { ClickhouseClient } from '@hyperdx/common-utils/dist/clickhouse/node';
 import mongoose from 'mongoose';
 
-import Connection from '@/models/connection';
+import Connection, { IConnection } from '@/models/connection';
 import logger from '@/utils/logger';
 
 export interface ReliabilityPattern {
@@ -29,7 +29,7 @@ export interface ReliabilityAnalysisResult {
  * Analyzes reliability patterns from telemetry data
  */
 export async function analyzeReliability(
-  connection: mongoose.HydratedDocument<Connection>,
+  connection: mongoose.HydratedDocument<IConnection>,
   database: string,
   startTime: Date,
   endTime: Date,
@@ -148,14 +148,14 @@ export async function analyzeReliability(
       },
     });
 
-    const json = await result.json<ResponseJSON<{
+    const json = await result.json<{
       serviceName: string;
       errorCount: string;
       totalCount: string;
       errorRate: string;
       errorRateTrend: string;
       spikeDetected: string;
-    }>>();
+    }>();
 
     const patterns: ReliabilityPattern[] = (json.data || []).map(row => ({
       serviceName: row.serviceName,

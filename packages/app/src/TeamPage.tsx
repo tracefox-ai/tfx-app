@@ -14,29 +14,13 @@ import {
   Group,
   InputLabel,
   Loader,
-  Modal,
   Stack,
   Text,
   TextInput,
   Tooltip,
-  Table,
-  Badge,
-  Select,
-  Tabs,
-  Grid,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import {
-  IconCheck,
-  IconClipboard,
-  IconChevronDown,
-  IconChevronUp,
-  IconDatabase,
-  IconHelpCircle,
-  IconPencil,
-  IconX,
-  IconChartBar,
-} from '@tabler/icons-react';
+import { IconHelpCircle, IconPencil, IconX } from '@tabler/icons-react';
 
 import { ConnectionForm } from '@/components/ConnectionForm';
 import SelectControlled from '@/components/SelectControlled';
@@ -463,192 +447,6 @@ function ClickhouseSettingForm({
   );
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-}
-
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(2)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(2)}K`;
-  }
-  return num.toString();
-}
-
-function DataIngestionMetricsRealtimeSection() {
-  const [timeRangeHours, setTimeRangeHours] = useState(1);
-  const { data: realtimeData, isLoading } =
-    api.useDataIngestionMetricsRealtime(timeRangeHours);
-
-  if (IS_LOCAL_MODE) {
-    return null;
-  }
-
-  return (
-    <Box id="data-ingestion-metrics-realtime">
-      <Group justify="space-between" mb="md">
-        <Group gap="xs">
-          <IconChartBar size={20} />
-          <Text size="md">Real-Time Service Breakdown</Text>
-        </Group>
-        <Group gap="xs">
-          <Select
-            value={timeRangeHours.toString()}
-            onChange={val => setTimeRangeHours(parseInt(val || '1', 10))}
-            data={[
-              { value: '1', label: 'Last 1 hour' },
-              { value: '2', label: 'Last 2 hours' },
-              { value: '6', label: 'Last 6 hours' },
-              { value: '24', label: 'Last 24 hours' },
-            ]}
-            size="xs"
-          />
-          <Tooltip
-            label="Real-time breakdown by service to help fine-tune your collector sampling policies. Use this to identify which services are ingesting the most data."
-          >
-            <IconHelpCircle size={16} style={{ cursor: 'help' }} />
-          </Tooltip>
-        </Group>
-      </Group>
-      <Divider my="md" />
-      <Card variant="muted">
-        {isLoading ? (
-          <Center p="xl">
-            <Loader color="dimmed" />
-          </Center>
-        ) : !realtimeData?.data || realtimeData.data.length === 0 ? (
-          <Text c="dimmed" ta="center" p="xl">
-            No service metrics available. Data will appear as services send telemetry.
-          </Text>
-        ) : (
-          <Stack gap="md">
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">
-                Service-level ingestion rates (estimated per hour)
-              </Text>
-              {realtimeData.timestamp && (
-                <Text size="xs" c="dimmed">
-                  Last updated:{' '}
-                  {new Date(realtimeData.timestamp).toLocaleTimeString()}
-                </Text>
-              )}
-            </Group>
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Service</Table.Th>
-                  <Table.Th>Est. Bytes/Hour</Table.Th>
-                  <Table.Th>Est. Rows/Hour</Table.Th>
-                  <Table.Th>Logs</Table.Th>
-                  <Table.Th>Traces</Table.Th>
-                  <Table.Th>Metrics</Table.Th>
-                  <Table.Th>Sessions</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {realtimeData.data.map(service => (
-                  <Table.Tr key={service.serviceName}>
-                    <Table.Td>
-                      <Text fw={500}>{service.serviceName}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge variant="light" color="blue">
-                        {formatBytes(service.estimatedBytesPerHour)}/hr
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge variant="light" color="green">
-                        {formatNumber(service.estimatedRowsPerHour)}/hr
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      {service.breakdown.logs.rows > 0 ? (
-                        <Stack gap={2}>
-                          <Text size="xs" c="dimmed">
-                            {formatBytes(service.breakdown.logs.bytes)}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {formatNumber(service.breakdown.logs.rows)} rows
-                          </Text>
-                        </Stack>
-                      ) : (
-                        <Text size="xs" c="dimmed">
-                          —
-                        </Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      {service.breakdown.traces.rows > 0 ? (
-                        <Stack gap={2}>
-                          <Text size="xs" c="dimmed">
-                            {formatBytes(service.breakdown.traces.bytes)}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {formatNumber(service.breakdown.traces.rows)} rows
-                          </Text>
-                        </Stack>
-                      ) : (
-                        <Text size="xs" c="dimmed">
-                          —
-                        </Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      {service.breakdown.metrics.rows > 0 ? (
-                        <Stack gap={2}>
-                          <Text size="xs" c="dimmed">
-                            {formatBytes(service.breakdown.metrics.bytes)}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {formatNumber(service.breakdown.metrics.rows)} rows
-                          </Text>
-                        </Stack>
-                      ) : (
-                        <Text size="xs" c="dimmed">
-                          —
-                        </Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      {service.breakdown.sessions.rows > 0 ? (
-                        <Stack gap={2}>
-                          <Text size="xs" c="dimmed">
-                            {formatBytes(service.breakdown.sessions.bytes)}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {formatNumber(service.breakdown.sessions.rows)} rows
-                          </Text>
-                        </Stack>
-                      ) : (
-                        <Text size="xs" c="dimmed">
-                          —
-                        </Text>
-                      )}
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-            <Text size="xs" c="dimmed" mt="sm">
-              💡 Tip: Use this data to configure tail sampling policies in your
-              OpenTelemetry collector. Services with high ingestion rates may
-              benefit from sampling strategies (errors-only, slow traces, or
-              probabilistic sampling).
-            </Text>
-          </Stack>
-        )}
-      </Card>
-    </Box>
-  );
-}
-
-
 function TeamQueryConfigSection() {
   const displayValueWithUnit =
     (unit: string) => (value: any, defaultValue?: any) =>
@@ -715,138 +513,6 @@ function TeamQueryConfigSection() {
   );
 }
 
-const APIKeyCopyButton = ({
-  value,
-  dataTestId,
-}: {
-  value: string;
-  dataTestId?: string;
-}) => {
-  const [copied, setCopied] = useState(false);
-  return (
-    <CopyToClipboard text={value}>
-      <Button
-        onClick={() => setCopied(true)}
-        variant={copied ? 'light' : 'default'}
-        color="gray"
-        rightSection={
-          <Group wrap="nowrap" gap={4} ms="xs">
-            {copied ? <IconCheck size={14} /> : <IconClipboard size={14} />}
-            {copied ? 'Copied!' : 'Copy'}
-          </Group>
-        }
-      >
-        <div data-test-id={dataTestId} className="text-wrap text-break">
-          {value}
-        </div>
-      </Button>
-    </CopyToClipboard>
-  );
-};
-
-function ApiKeysSection() {
-  const { data: team, refetch: refetchTeam } = api.useTeam();
-  const { data: me, isLoading: isLoadingMe } = api.useMe();
-  const rotateTeamApiKey = api.useRotateTeamApiKey();
-  const hasAdminAccess = true;
-  const [
-    rotateApiKeyConfirmationModalShow,
-    setRotateApiKeyConfirmationModalShow,
-  ] = useState(false);
-  const rotateTeamApiKeyAction = () => {
-    rotateTeamApiKey.mutate(undefined, {
-      onSuccess: () => {
-        notifications.show({
-          color: 'green',
-          message: 'Revoked old API key and generated new key.',
-        });
-        refetchTeam();
-      },
-      onError: e => {
-        notifications.show({
-          color: 'red',
-          message: e.message,
-          autoClose: 5000,
-        });
-      },
-    });
-  };
-  const onConfirmUpdateTeamApiKey = () => {
-    rotateTeamApiKeyAction();
-    setRotateApiKeyConfirmationModalShow(false);
-  };
-
-  return (
-    <Box id="api_keys">
-      <Text size="md">API Keys</Text>
-      <Divider my="md" />
-      <Card mb="md">
-        <Text mb="md">Ingestion API Key</Text>
-        <Group gap="xs">
-          {team?.apiKey && (
-            <APIKeyCopyButton value={team.apiKey} dataTestId="api-key" />
-          )}
-          {hasAdminAccess && (
-            <Button
-              variant="light"
-              color="red"
-              onClick={() => setRotateApiKeyConfirmationModalShow(true)}
-            >
-              Rotate API Key
-            </Button>
-          )}
-        </Group>
-        <Modal
-          aria-labelledby="contained-modal-title-vcenter"
-          centered
-          onClose={() => setRotateApiKeyConfirmationModalShow(false)}
-          opened={rotateApiKeyConfirmationModalShow}
-          size="lg"
-          title={
-            <Text size="xl">
-              <b>Rotate API Key</b>
-            </Text>
-          }
-        >
-          <Modal.Body>
-            <Text size="md">
-              Rotating the API key will invalidate your existing API key and
-              generate a new one for you. This action is <b>not reversible</b>.
-            </Text>
-            <Group justify="end">
-              <Button
-                variant="default"
-                className="mt-2 px-4 ms-2 float-end"
-                size="sm"
-                onClick={() => setRotateApiKeyConfirmationModalShow(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="outline"
-                color="red"
-                className="mt-2 px-4 float-end"
-                size="sm"
-                onClick={onConfirmUpdateTeamApiKey}
-              >
-                Confirm
-              </Button>
-            </Group>
-          </Modal.Body>
-        </Modal>
-      </Card>
-      {!isLoadingMe && me != null && (
-        <Card>
-          <Card.Section p="md">
-            <Text mb="md">Personal API Access Key</Text>
-            <APIKeyCopyButton value={me.accessKey} dataTestId="api-key" />
-          </Card.Section>
-        </Card>
-      )}
-    </Box>
-  );
-}
-
 export default function TeamPage() {
   const { data: team, isLoading } = api.useTeam();
   const hasAllowedAuthMethods =
@@ -855,7 +521,7 @@ export default function TeamPage() {
   return (
     <div className="TeamPage">
       <Head>
-        <title>My Team - HyperDX</title>
+        <title>My Team</title>
       </Head>
       <PageHeader>
         <div>{team?.name || 'My team'}</div>
@@ -869,12 +535,11 @@ export default function TeamPage() {
           )}
           {!isLoading && team != null && (
             <Stack my={20} gap="xl">
-              <SourcesSection />
-              <ConnectionsSection />
+              {/* <SourcesSection /> */}
+              {/* <ConnectionsSection /> */}
               <IntegrationsSection />
               <TeamNameSection />
-              <TeamQueryConfigSection />
-              <DataIngestionMetricsRealtimeSection />
+              {/* <TeamQueryConfigSection /> */}
 
               {hasAllowedAuthMethods && (
                 <>

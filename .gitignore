@@ -80,3 +80,5 @@ docker-compose.prod.yml
 
 # webstorm
 .idea
+
+packages/web/

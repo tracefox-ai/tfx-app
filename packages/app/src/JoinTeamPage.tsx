@@ -8,7 +8,7 @@ export default function JoinTeam() {
 
   return (
     <div className="AuthPage">
-      <NextSeo title="Join Team - HyperDX" />
+      <NextSeo title="Join Team" />
       <div className="d-flex align-items-center justify-content-center vh-100 p-2">
         <div>
           <div className="text-center mb-4">

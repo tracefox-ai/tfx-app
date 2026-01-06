@@ -103,7 +103,7 @@ export default function IncidentCreatePage() {
   return (
     <div data-testid="incident-create-page" className="IncidentCreatePage">
       <Head>
-        <title>New Incident - Incidents - HyperDX</title>
+        <title>New Incident - Incidents</title>
       </Head>
       <PageHeader>
         <Group justify="space-between" style={{ width: '100%' }}>

@@ -379,7 +379,7 @@ export default function SessionsPage() {
   return (
     <div className="SessionsPage" data-testid="sessions-page">
       <Head>
-        <title>Client Sessions - HyperDX</title>
+        <title>Client Sessions</title>
       </Head>
       {selectedSession != null &&
         traceTrace != null &&

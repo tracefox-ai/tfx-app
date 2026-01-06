@@ -483,10 +483,10 @@ export default function AppNav({ fixed = false }: { fixed?: boolean }) {
         href={`/search/${savedSearch.id}?${new URLSearchParams(
           timeRangeQuery.from != -1 && timeRangeQuery.to != -1
             ? {
-                from: timeRangeQuery.from.toString(),
-                to: timeRangeQuery.to.toString(),
-                tq: inputTimeQuery,
-              }
+              from: timeRangeQuery.from.toString(),
+              to: timeRangeQuery.to.toString(),
+              tq: inputTimeQuery,
+            }
             : {},
         ).toString()}`}
         key={savedSearch.id}
@@ -502,7 +502,7 @@ export default function AppNav({ fixed = false }: { fixed?: boolean }) {
         <Group gap={2}>
           <div className="d-inline-block text-truncate">{savedSearch.name}</div>
           {Array.isArray(savedSearch.alerts) &&
-          savedSearch.alerts.length > 0 ? (
+            savedSearch.alerts.length > 0 ? (
             savedSearch.alerts.some(a => a.state === AlertState.ALERT) ? (
               <IconBellFilled
                 size={14}
@@ -685,7 +685,7 @@ export default function AppNav({ fixed = false }: { fixed?: boolean }) {
                 icon={<IconTable size={16} />}
                 href="/search"
                 className={cx({
-                  'text-success fw-600':
+                  'text-link fw-600':
                     pathname.includes('/search') && query.savedSearchId == null,
                   'fw-600':
                     pathname.includes('/search') && query.savedSearchId != null,
@@ -734,7 +734,7 @@ export default function AppNav({ fixed = false }: { fixed?: boolean }) {
                           </div>
 
                           {searchesListQ &&
-                          filteredSearchesList.length === 0 ? (
+                            filteredSearchesList.length === 0 ? (
                             <div className={styles.listEmptyMsg}>
                               No results matching <i>{searchesListQ}</i>
                             </div>
@@ -826,7 +826,7 @@ export default function AppNav({ fixed = false }: { fixed?: boolean }) {
                           )}
 
                           {dashboardsListQ &&
-                          filteredDashboardsList.length === 0 ? (
+                            filteredDashboardsList.length === 0 ? (
                             <div className={styles.listEmptyMsg}>
                               No results matching <i>{dashboardsListQ}</i>
                             </div>
@@ -905,7 +905,7 @@ export default function AppNav({ fixed = false }: { fixed?: boolean }) {
                 style={{ width: navWidth, paddingBottom: 80 }}
                 className="px-3 mb-2 mt-4"
               >
-                <OnboardingChecklist onAddDataClick={openInstallInstructions} />
+                {/* <OnboardingChecklist onAddDataClick={openInstallInstructions} /> */}
                 {/* <AppNavCloudBanner /> */}
               </div>
             </>

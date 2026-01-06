@@ -281,7 +281,7 @@ function ResumeLiveTailButton({
 }) {
   return (
     <Button size="compact-xs" variant="outline" onClick={handleResumeLiveTail}>
-      <IconBolt size={14} className="text-success me-2" />
+      <IconBolt size={14} className="text-indigo-500 me-2" />
       Resume Live Tail
     </Button>
   );
@@ -297,7 +297,7 @@ function SearchSubmitButton({
       data-testid="search-submit-button"
       variant="outline"
       type="submit"
-      color={isFormStateDirty ? 'var(--color-text-success)' : 'gray'}
+      color={isFormStateDirty ? 'indigo' : 'gray'}
     >
       <IconPlayerPlay size={16} />
     </Button>
@@ -359,10 +359,10 @@ function SaveSearchModalComponent({
   } = useForm({
     ...(isUpdate
       ? {
-          values: {
-            name: savedSearch?.name ?? '',
-          },
-        }
+        values: {
+          name: savedSearch?.name ?? '',
+        },
+      }
       : {}),
     resetOptions: {
       keepDirtyValues: true,
@@ -534,7 +534,7 @@ function SaveSearchModalComponent({
           <Button
             data-testid="save-search-submit-button"
             variant="outline"
-            color="green"
+            color="indigo"
             type="submit"
             disabled={!formState.isValid}
           >
@@ -648,14 +648,14 @@ function useSearchedConfigToChartConfig(
           source: sourceObj.id,
           ...(sourceObj.tableFilterExpression != null
             ? {
-                filters: [
-                  {
-                    type: 'sql' as const,
-                    condition: sourceObj.tableFilterExpression,
-                  },
-                  ...(filters ?? []),
-                ],
-              }
+              filters: [
+                {
+                  type: 'sql' as const,
+                  condition: sourceObj.tableFilterExpression,
+                },
+                ...(filters ?? []),
+              ],
+            }
             : {}),
           ...(filters != null ? { filters } : {}),
           where: where ?? '',
@@ -1265,6 +1265,9 @@ function DBSearchPage() {
     () =>
       splitAndTrimWithBracket(
         dbSqlRowTableConfig?.select ?? defaultSearchConfig.select ?? '',
+        // dbSqlRowTableConfig?.select ??
+        // searchedSource?.defaultTableSelectExpression ??
+        '',
       ),
     [dbSqlRowTableConfig?.select, defaultSearchConfig.select],
   );
@@ -1450,20 +1453,20 @@ function DBSearchPage() {
     } as const;
     return chartConfig
       ? {
-          ...chartConfig,
-          ...overrides,
-        }
+        ...chartConfig,
+        ...overrides,
+      }
       : {
-          timestampValueExpression: '',
-          connection: '',
-          from: {
-            databaseName: '',
-            tableName: '',
-          },
-          where: '',
-          select: '',
-          ...overrides,
-        };
+        timestampValueExpression: '',
+        connection: '',
+        from: {
+          databaseName: '',
+          tableName: '',
+        },
+        where: '',
+        select: '',
+        ...overrides,
+      };
   }, [chartConfig, searchedTimeRange, aliasWith]);
 
   const openNewSourceModal = useCallback(() => {
@@ -1561,7 +1564,7 @@ function DBSearchPage() {
     >
       <Head>
         <title>
-          {savedSearch ? `${savedSearch.name} Search` : 'Search'} - HyperDX
+          {savedSearch ? `${savedSearch.name} Search` : 'Search'}
         </title>
       </Head>
       {!IS_LOCAL_MODE && isAlertModalOpen && (
