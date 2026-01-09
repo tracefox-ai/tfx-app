@@ -1267,7 +1267,7 @@ function DBSearchPage() {
         dbSqlRowTableConfig?.select ?? defaultSearchConfig.select ?? '',
         // dbSqlRowTableConfig?.select ??
         // searchedSource?.defaultTableSelectExpression ??
-        '',
+        // '',
       ),
     [dbSqlRowTableConfig?.select, defaultSearchConfig.select],
   );
